@@ -37,12 +37,15 @@ export default class {
         .get()
         .then(snapshot => {
           const bills = snapshot.docs
-            // .sort((doc1, doc2) => new Date(doc1.date) - new Date(doc2.date))
+            // .sort(function (a, b) {
+            //   return (new Date(a.date) < new Date(b.date)) ? 1 : -1
+            // })
             .map(doc => {
               try {
                 return {
                   ...doc.data(),
-                  date: formatDate(doc.data().date),
+                  date: doc.data().date,
+                  // date: formatDate(doc.data().date),
                   status: formatStatus(doc.data().status)
                 }
               } catch (e) {

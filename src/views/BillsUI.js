@@ -3,6 +3,7 @@ import ErrorPage from "./ErrorPage.js"
 import LoadingPage from "./LoadingPage.js"
 
 import Actions from './Actions.js'
+import { formatDate } from '../app/format.js';
 
 const row = (bill) => {
   return (`
@@ -10,7 +11,7 @@ const row = (bill) => {
       <td>${bill.type}</td>
       <td>${bill.name}</td>
       <td>${bill.date}</td>
-      <td>${bill.amount} €</td>
+      <td>${bill.amount}€</td>
       <td>${bill.status}</td>
       <td>
         ${Actions(bill.fileUrl, bill.fileName)}
@@ -21,8 +22,12 @@ const row = (bill) => {
 
 const rows = (data) => {
   return (data && data.length) ? data
-    .sort((a, b) => ((a.date < b.date) ? 1 : -1))
-    .map(bill => row(bill)).join("") : ""
+    .sort(function (a, b) {
+      return (new Date(a.date) < new Date(b.date)) ? 1 : -1
+    })
+    .map(bill => {
+      return row(bill)
+    }).join("") : ""
 }
 
 export default ({ data: bills, loading, error }) => {
