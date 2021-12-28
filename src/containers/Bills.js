@@ -37,9 +37,6 @@ export default class {
         .get()
         .then(snapshot => {
           const bills = snapshot.docs
-            // .sort(function (a, b) {
-            //   return (new Date(a.date) < new Date(b.date)) ? 1 : -1
-            // })
             .map(doc => {
               try {
                 return {

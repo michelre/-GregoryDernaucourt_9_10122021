@@ -10,6 +10,7 @@ export default class NewBill {
     const formNewBill = this.document.querySelector(`form[data-testid="form-new-bill"]`)
     formNewBill.addEventListener("submit", this.handleSubmit)
     const file = this.document.querySelector(`input[data-testid="file"]`)
+    console.log(file.value);
     file.addEventListener("change", this.handleChangeFile)
     this.fileUrl = null
     this.fileName = null

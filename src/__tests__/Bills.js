@@ -2,13 +2,15 @@
  * @jest-environment jsdom
  */
 
-import { getByTestId, screen } from "@testing-library/dom"
+import userEvent from '@testing-library/user-event'
+import { fireEvent, getByTestId, screen } from "@testing-library/dom"
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
 import { localStorageMock } from '../__mocks__/localStorage'
 import { ROUTES, ROUTES_PATH } from "../constants/routes"
 import firebase from "../__mocks__/firebase"
-import ErrorPage from "../views/ErrorPage.js"
+import Bills from "../containers/Bills"
+import $ from 'jquery'
 
 
 const data = []
@@ -50,28 +52,50 @@ describe("Given I am connected as an employee", () => {
       expect(dates).toEqual(datesSorted)
     })
 
-    test('Then I click on New Bill and I should navigate to NewBill ', () => {
-      const pathname = ROUTES_PATH['NewBill']
-      const html = ROUTES({
-        pathname,
-        data,
-        loading,
-        error
-      })
-      const url = ROUTES_PATH.NewBill
-      Object.defineProperty(window, 'location', {
-        value: {
-          hash: url
+    describe('When I click on the icon eye', () => {
+      test('handleClickIconEye function should be called', () => {
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
         }
-      });
-      document.body.innerHTML = html
-      expect(window.location.hash).toBe(url)
+        const firestore = firebase
+
+        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        const html = BillsUI({ data: bills })
+        document.body.innerHTML = html
+        const billsContainer = new Bills({
+          document, onNavigate, firestore, localStorage
+        })
+        billsContainer.handleClickIconEye = jest.fn()
+        const iconEyes = screen.getAllByTestId('icon-eye')
+        expect(iconEyes).not.toHaveLength(0)
+        expect(iconEyes).not.toBeNull()
+        iconEyes[0].click()
+        expect(billsContainer.handleClickIconEye).toHaveBeenCalled()
+      })
+
+      test('A modal should open', () => {
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
+        }
+        const firestore = firebase
+
+        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        const html = BillsUI({ data: bills })
+        document.body.innerHTML = html
+        const billsContainer = new Bills({
+          document, onNavigate, firestore, localStorage
+        })
+        const modaleFile = screen.getByTestId('modaleFile')
+        billsContainer.handleClickIconEye = jest.fn()
+        const iconEyes = screen.getAllByTestId('icon-eye')
+        iconEyes[0].click()
+        expect(modaleFile.classList.contains('show')).toBeTruthy()
+      })
+
     })
   })
-})
 
-// Test d'intégration GET Bills
-describe("Given I am a user connected as Employee", () => {
+  // Test d'intégration GET Bills
   describe("When I navigate to Bills", () => {
     test("Then fetches bills from mock API GET", async () => {
       const getSpy = jest.spyOn(firebase, "get")
@@ -79,40 +103,79 @@ describe("Given I am a user connected as Employee", () => {
       expect(getSpy).toHaveBeenCalledTimes(1)
       expect(bills.data.length).toBe(4)
     })
-  })
 
-  test("Then fetches bills from an API and fails with 404 message error", async () => {
-    firebase.get.mockImplementationOnce(() =>
-      Promise.reject(new Error("Erreur 404"))
-    )
-    const html = BillsUI({ error: "Erreur 404" })
-    document.body.innerHTML = html
-    const message = await screen.getByText(/Erreur 404/)
-    expect(message).toBeTruthy()
-  })
+    test("Then fetches bills from an API and fails with 404 message error", async () => {
+      firebase.get.mockImplementationOnce(() =>
+        Promise.reject(new Error("Erreur 404"))
+      )
+      const html = BillsUI({ error: "Erreur 404" })
+      document.body.innerHTML = html
+      const message = await screen.getByText(/Erreur 404/)
+      expect(message).toBeTruthy()
+    })
 
-  test("Then fetches messages from an API and fails with 500 message error", async () => {
-    firebase.get.mockImplementationOnce(() =>
-      Promise.reject(new Error("Erreur 500"))
-    )
-    const html = BillsUI({ error: "Erreur 500" })
-    document.body.innerHTML = html
-    const message = await screen.getByText(/Erreur 500/)
-    expect(message).toBeTruthy()
-  })
+    test("Then fetches messages from an API and fails with 500 message error", async () => {
+      firebase.get.mockImplementationOnce(() =>
+        Promise.reject(new Error("Erreur 500"))
+      )
+      const html = BillsUI({ error: "Erreur 500" })
+      document.body.innerHTML = html
+      const message = await screen.getByText(/Erreur 500/)
+      expect(message).toBeTruthy()
+    })
 
-  test(('Then, it should render Loading...'), () => {
-    const html = BillsUI({ data: [], loading: true })
-    document.body.innerHTML = html
-    expect(screen.getAllByText('Loading...')).toBeTruthy()
-  })
+    test(('Then, it should render Loading...'), () => {
+      const html = BillsUI({ data: [], loading: true })
+      document.body.innerHTML = html
+      expect(screen.getAllByText('Loading...')).toBeTruthy()
+    })
 
-  test(('Then, if error, it should render Error page'), () => {
-    const error = 'Erreur de connexion internet'
-    const html = BillsUI({ data: [], error: error })
-    document.body.innerHTML = html
-    expect(screen.getAllByText(error)).toBeTruthy()
+    test(('Then, if error, it should render Error page'), () => {
+      const error = 'Erreur de connexion internet'
+      const html = BillsUI({ data: [], error: error })
+      document.body.innerHTML = html
+      expect(screen.getAllByText(error)).toBeTruthy()
+    })
+
+    test('Then I click on New Bill and I should navigate to NewBill', () => {
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      const firestore = null
+      const html = BillsUI({ data: bills })
+      document.body.innerHTML = html
+
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      const billsContainer = new Bills({
+        document, onNavigate, firestore, localStorage
+      })
+      const handleClickNewBill = jest.fn(billsContainer.handleClickNewBill)
+      const buttonNewBill = screen.getByTestId('btn-new-bill')
+      expect(buttonNewBill).toBeTruthy()
+      buttonNewBill.addEventListener('click', handleClickNewBill)
+      buttonNewBill.click()
+      if (buttonNewBill) expect(handleClickNewBill).toHaveBeenCalled()
+      else expect(handleClickNewBill).not.toHaveBeenCalled()
+    })
+
+    test('should ', () => {
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      const firestore = null
+
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      const bills = new Bills({
+        document, onNavigate, firestore, localStorage
+      })
+      const html = BillsUI({ data: bills })
+      document.body.innerHTML = html
+      const handleClickNewBill = jest.fn(bills.handleClickNewBill)
+      const buttonNewBill = jest.fn()
+      if (buttonNewBill) expect(handleClickNewBill).not.toHaveBeenCalled()
+    })
+
+
   })
 
 })
-
