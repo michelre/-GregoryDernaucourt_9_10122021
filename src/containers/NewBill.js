@@ -10,7 +10,6 @@ export default class NewBill {
     const formNewBill = this.document.querySelector(`form[data-testid="form-new-bill"]`)
     formNewBill.addEventListener("submit", this.handleSubmit)
     const file = this.document.querySelector(`input[data-testid="file"]`)
-    console.log(file.value);
     file.addEventListener("change", this.handleChangeFile)
     this.fileUrl = null
     this.fileName = null
@@ -18,6 +17,7 @@ export default class NewBill {
   }
   handleChangeFile = e => {
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
+    console.log(e.target)
     if (/(?:jpg|jpeg|png)/g.test(file.name)) {
       const filePath = e.target.value.split(/\\/g)
       const fileName = filePath[filePath.length - 1]

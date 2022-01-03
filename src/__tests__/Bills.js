@@ -10,8 +10,6 @@ import { localStorageMock } from '../__mocks__/localStorage'
 import { ROUTES, ROUTES_PATH } from "../constants/routes"
 import firebase from "../__mocks__/firebase"
 import Bills from "../containers/Bills"
-import $ from 'jquery'
-
 
 const data = []
 const loading = false
@@ -77,21 +75,46 @@ describe("Given I am connected as an employee", () => {
         const onNavigate = (pathname) => {
           document.body.innerHTML = ROUTES({ pathname })
         }
-        const firestore = firebase
 
         Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-        const html = BillsUI({ data: bills })
-        document.body.innerHTML = html
+        window.localStorage.setItem('user', JSON.stringify({
+          type: 'Employee'
+        }))
+        const firestore = null
         const billsContainer = new Bills({
           document, onNavigate, firestore, localStorage
         })
+        const html = BillsUI({ data: bills })
+
+        document.body.innerHTML = html
+
+        const icon = document.querySelectorAll("#eye")[0]
+        const handleClickIconEye = jest.fn(billsContainer.handleClickIconEye)
+
+        expect(icon).toEqual(document.querySelector("#eye"))
+        icon.addEventListener('click', handleClickIconEye(icon))
+        userEvent.click(icon)
         const modaleFile = screen.getByTestId('modaleFile')
-        billsContainer.handleClickIconEye = jest.fn()
-        const iconEyes = screen.getAllByTestId('icon-eye')
-        iconEyes[0].click()
         expect(modaleFile.classList.contains('show')).toBeTruthy()
       })
 
+      test('I should test handleClickIconEye', () => {
+        const html = BillsUI({ data: bills })
+        document.body.innerHTML = html
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
+        }
+        const firestore = null
+
+        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        const billsContainer = new Bills({
+          document, onNavigate, firestore, localStorage
+        })
+        const handleClickIconEye = jest.fn(billsContainer.handleClickIconEye)
+        const iconEye = screen.getAllByTestId("icon-eye")[0]
+        iconEye.click()
+        if (iconEye) expect(handleClickIconEye).toHaveBeenCalled()
+      })
     })
   })
 
@@ -158,7 +181,7 @@ describe("Given I am connected as an employee", () => {
       else expect(handleClickNewBill).not.toHaveBeenCalled()
     })
 
-    test('should ', () => {
+    test('Then I click on New Bill and I should test conditions', () => {
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
       }
@@ -174,8 +197,6 @@ describe("Given I am connected as an employee", () => {
       const buttonNewBill = jest.fn()
       if (buttonNewBill) expect(handleClickNewBill).not.toHaveBeenCalled()
     })
-
-
   })
 
 })

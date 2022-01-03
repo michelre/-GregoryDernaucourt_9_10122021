@@ -7,24 +7,20 @@ import { localStorageMock } from "../__mocks__/localStorage.js"
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
-    test("Then I should put a file", () => {
+    test("Then I should be able to send a file", () => {
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      const firestore = firebase
       const html = NewBillUI()
       document.body.innerHTML = html
       //to-do write assertion
-      const file = screen.getByTestId("file")
-      const onNavigate = jest.fn()
-      const firestore = jest.fn()
       const newbill = new NewBill({ document, onNavigate, firestore })
-      newbill.handleChangeFile = jest.fn(newbill.handleChangeFile)
-      const event = {
-        target: {
-          files: ['image.jpg']
-        }
-      }
-      fireEvent.change(file, event)
-      const fileName = file.files[0]
-      expect(fileName).toMatch(/(?:jpg|jpeg|png)/g)
-      expect(newbill.handleChangeFile).toHaveBeenCalled()
+      const file = new File([new ArrayBuffer(1)], 'file.jpg')
+      const fileElement = screen.getByTestId("file")
+      const handleChangeFile = jest.fn(e => newbill.handleChangeFile(e))
+      fireEvent.change(fileElement, { target: { value: 'C:\\fakepath\\jane-roe.jpg' } })
+      expect(handleChangeFile).toHaveBeenCalled()
     })
 
     test('Then I should submit', () => {
@@ -46,6 +42,42 @@ describe("Given I am connected as an employee", () => {
       fireEvent.submit(formNewBill)
       expect(handleSubmit).toHaveBeenCalled()
 
+    })
+
+  })
+
+  // Test d'intégration POST new bill
+  describe("When I post a new bill", () => {
+    //Date remplie
+    test('I should have a valid date', () => {
+      const html = NewBillUI()
+      document.body.innerHTML = html
+      const datepicker = screen.getByTestId('datepicker')
+      expect(datepicker).not.toBeNull()
+      expect(datepicker.getAttributeNames().find(e => e == 'required')).not.toBeUndefined()
+    })
+
+    //Un montant
+    test('I should have a number as amount ', () => {
+      const html = NewBillUI()
+      document.body.innerHTML = html
+      const amount = screen.getByTestId('amount')
+      expect(amount).not.toBeNull()
+      expect(amount.getAttributeNames().find(e => e == 'required')).not.toBeUndefined()
+    })
+
+    //Une tva (pourcentage)
+    test('I should have a number as VAT', () => {
+      const pct = screen.getByTestId('pct')
+      expect(pct).not.toBeNull()
+      expect(pct.getAttributeNames().find(e => e == 'required')).not.toBeUndefined()
+    })
+
+    //Un fichier à envoyer
+    test('I should have a valid file', () => {
+      const file = screen.getByTestId('file')
+      expect(file).not.toBeNull()
+      expect(file.getAttributeNames().find(e => e == 'required')).not.toBeUndefined()
     })
 
   })
