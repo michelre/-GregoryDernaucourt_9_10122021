@@ -1,8 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-
-import userEvent from '@testing-library/user-event'
+import VerticalLayout from "../views/VerticalLayout"
 import { fireEvent, getByTestId, screen } from "@testing-library/dom"
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
@@ -72,49 +71,25 @@ describe("Given I am connected as an employee", () => {
       })
 
       test('A modal should open', () => {
-        const onNavigate = (pathname) => {
-          document.body.innerHTML = ROUTES({ pathname })
-        }
-
-        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-        window.localStorage.setItem('user', JSON.stringify({
-          type: 'Employee'
-        }))
-        const firestore = null
-        const billsContainer = new Bills({
-          document, onNavigate, firestore, localStorage
-        })
-        const html = BillsUI({ data: bills })
-
-        document.body.innerHTML = html
-
-        const icon = document.querySelectorAll("#eye")[0]
-        const handleClickIconEye = jest.fn(billsContainer.handleClickIconEye)
-
-        expect(icon).toEqual(document.querySelector("#eye"))
-        icon.addEventListener('click', handleClickIconEye(icon))
-        userEvent.click(icon)
-        const modaleFile = screen.getByTestId('modaleFile')
-        expect(modaleFile.classList.contains('show')).toBeTruthy()
-      })
-
-      test('I should test handleClickIconEye', () => {
         const html = BillsUI({ data: bills })
         document.body.innerHTML = html
         const onNavigate = (pathname) => {
           document.body.innerHTML = ROUTES({ pathname })
         }
-        const firestore = null
-
-        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        const firestore = firebase
         const billsContainer = new Bills({
           document, onNavigate, firestore, localStorage
         })
-        const handleClickIconEye = jest.fn(billsContainer.handleClickIconEye)
-        const iconEye = screen.getAllByTestId("icon-eye")[0]
+
+        const handleClickIconEye = billsContainer.handleClickIconEye
+        const iconEye = screen.getAllByTestId('icon-eye')[0]
+        expect(iconEye).toBeTruthy()
+        iconEye.addEventListener('click', () => handleClickIconEye(iconEye))
         iconEye.click()
         if (iconEye) expect(handleClickIconEye).toHaveBeenCalled()
+        else expect(handleClickIconEye).not.toHaveBeenCalled()
       })
+
     })
   })
 

@@ -7,20 +7,31 @@ import { localStorageMock } from "../__mocks__/localStorage.js"
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
-    test("Then I should be able to send a file", () => {
+    test("Then I should be able to send a file", async () => {
+      const html = NewBillUI()
+      document.body.innerHTML = html
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
       }
       const firestore = firebase
-      const html = NewBillUI()
-      document.body.innerHTML = html
-      //to-do write assertion
       const newbill = new NewBill({ document, onNavigate, firestore })
-      const file = new File([new ArrayBuffer(1)], 'file.jpg')
-      const fileElement = screen.getByTestId("file")
-      const handleChangeFile = jest.fn(e => newbill.handleChangeFile(e))
-      fireEvent.change(fileElement, { target: { value: 'C:\\fakepath\\jane-roe.jpg' } })
-      expect(handleChangeFile).toHaveBeenCalled()
+      const handleChangeFile = jest.fn(newbill.handleChangeFile)
+      const inputData = {
+        name: 'jane-roe.jpg',
+        _lastModified: 1580400631732,
+        get lastModified() {
+          return this._lastModified
+        },
+        set lastModified(value) {
+          this._lastModified = value
+        },
+        size: 703786,
+        type: 'image/jpeg'
+      }
+      const file = screen.getByTestId("file")
+      fireEvent.change(file, { target: jest.fn(inputData) })
+      file.value = `C:\fakepath\jane-roe.jpg`
+      expect(handleChangeFile).toBeCalled()
     })
 
     test('Then I should submit', () => {

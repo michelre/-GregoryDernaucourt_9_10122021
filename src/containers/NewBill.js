@@ -17,7 +17,7 @@ export default class NewBill {
   }
   handleChangeFile = e => {
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
-    console.log(e.target)
+    console.log(e.target.value)
     if (/(?:jpg|jpeg|png)/g.test(file.name)) {
       const filePath = e.target.value.split(/\\/g)
       const fileName = filePath[filePath.length - 1]
@@ -35,7 +35,6 @@ export default class NewBill {
       e.target.value = ''
     }
   }
-
 
   handleSubmit = e => {
     e.preventDefault()
@@ -59,6 +58,7 @@ export default class NewBill {
   }
 
   // not need to cover this function by tests
+  /* istanbul ignore next */
   createBill = (bill) => {
     if (this.firestore) {
       this.firestore
