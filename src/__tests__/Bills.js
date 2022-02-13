@@ -80,8 +80,9 @@ describe("Given I am connected as an employee", () => {
         const billsContainer = new Bills({
           document, onNavigate, firestore, localStorage
         })
+        $.prototype.modal = jest.fn()
 
-        const handleClickIconEye = billsContainer.handleClickIconEye
+        const handleClickIconEye = jest.fn(billsContainer.handleClickIconEye)
         const iconEye = screen.getAllByTestId('icon-eye')[0]
         expect(iconEye).toBeTruthy()
         iconEye.addEventListener('click', () => handleClickIconEye(iconEye))

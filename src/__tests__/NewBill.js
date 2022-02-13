@@ -13,9 +13,19 @@ describe("Given I am connected as an employee", () => {
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
       }
-      const firestore = firebase
-      const newbill = new NewBill({ document, onNavigate, firestore })
-      const handleChangeFile = jest.fn(newbill.handleChangeFile)
+      const firestore = {
+        storage: {
+          ref: jest.fn().mockReturnThis(),
+          put: jest.fn().mockResolvedValue({
+            ref: {
+              getDownloadURL: () => {}
+            }
+          })
+        }
+      }
+      const newBill = new NewBill({ document, onNavigate, firestore })
+      const handleChangeFile = jest.fn(newBill.handleChangeFile)
+      const fileInput = screen.getByTestId("file")
       const inputData = {
         name: 'jane-roe.jpg',
         _lastModified: 1580400631732,
@@ -29,9 +39,11 @@ describe("Given I am connected as an employee", () => {
         type: 'image/jpeg'
       }
       const file = screen.getByTestId("file")
-      fireEvent.change(file, { target: jest.fn(inputData) })
-      file.value = `C:\fakepath\jane-roe.jpg`
-      expect(handleChangeFile).toBeCalled()
+      fileInput.addEventListener("change", handleChangeFile)
+      fireEvent.change(file, { target: { files: [inputData] } })
+
+      expect(handleChangeFile).toHaveBeenCalled()
+      expect(firestore.storage.put).toHaveBeenCalled()
     })
 
     test('Then I should submit', () => {
